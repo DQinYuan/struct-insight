@@ -50,6 +50,8 @@ name(type)  表示复合的结构体,匿名复合结构体则type为空
 insight.Start('key')
 insight.Insight('comment', object)
 
+map类型的显示会受私有影响
+
  */
 
 const (
@@ -75,18 +77,14 @@ func push(values *[]interface{}, v interface{})  {
 
 func prettify(v reflect.Value, buf *bytes.Buffer, values *[]interface{}, dep int, prefixType int,
 	key string) {
-	// 防止 zero value  和 不公开属性
-	if !v.IsValid() || !v.CanInterface() {
+	// 防止 zero value
+	if !v.IsValid() /*|| !v.CanInterface()*/ {
 		return
 	}
 	k := v.Kind()
-	// 指针类型不会增加深度
-	if k == reflect.Ptr {
+	// 指针类型或者接口类型不会增加深度
+	if k == reflect.Ptr || k == reflect.Interface {
 		prettify(v.Elem(), buf, values, dep, prefixType, key)
-		return
-	}
-	if k == reflect.Interface {
-		prettify(reflect.ValueOf(v.Interface()), buf, values, dep, prefixType, key)
 		return
 	}
 
@@ -97,26 +95,30 @@ func prettify(v reflect.Value, buf *bytes.Buffer, values *[]interface{}, dep int
 		push(values, key)
 	}
 	switch v.Kind() {
-	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Uint, reflect.Uint8, reflect.Uint16,
-		reflect.Uint32, reflect.Uint64:
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:
 		buf.WriteString("%d\n")
-	    push(values, v.Interface())
+	    push(values, v.Int())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		buf.WriteString("%d\n")
+		push(values, v.Uint())
 	case reflect.Bool:
 		buf.WriteString("%t\n")
-		push(values, v.Interface())
+		push(values, v.Bool())
 	case reflect.Int64:
-		if v.Type().String() == "time.Duration" {
+		if v.CanInterface() && v.Type().String() == "time.Duration" {
 			buf.WriteString("%v\n")
+			timeStr := v.MethodByName("String").Call([]reflect.Value{})[0].Interface()
+			push(values, timeStr)
 		} else {
 			buf.WriteString("%d\n")
+			push(values, v.Int())
 		}
-		push(values, v.Interface())
 	case reflect.String:
 		buf.WriteString("%s\n")
-		push(values, v.Interface())
+		push(values, v.String())
 	case reflect.Float32, reflect.Float64:
 		buf.WriteString("%f\n")
-		push(values, v.Interface())
+		push(values, v.Float())
 	case reflect.Struct:
 		buf.WriteString("(%s)\n")
 		push(values, v.Type().String())
@@ -131,8 +133,10 @@ func prettify(v reflect.Value, buf *bytes.Buffer, values *[]interface{}, dep int
 	case reflect.Map:
 		buf.WriteString("\n")
 		for _, key := range v.MapKeys() {
-			prettify(v.MapIndex(key), buf, values, dep + 1, ARR_MAP,
-				fmt.Sprintf("%v", key.Interface()))
+			if key.CanInterface() {
+				prettify(v.MapIndex(key), buf, values, dep + 1, ARR_MAP,
+					fmt.Sprintf("%v", key.Interface()))
+			}
 		}
 	default:
 		buf.WriteString("<not known type>\n")

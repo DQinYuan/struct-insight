@@ -16,18 +16,20 @@ type MyExpr struct {
 	Haha string
 }
 
-func (*MyExpr) eval(v string) bool {
+func (MyExpr) eval(v string) bool {
 	return false
 }
 
 type Policy struct {
 	Allow string
-	Deny  string
+	deny  string
+	tt    int
+	t     time.Duration
 }
 
 type Host struct {
 	Ip     string
-	Alias  []string
+	alias  []string
 	Policy Policy
 }
 type Redis struct {
@@ -44,7 +46,8 @@ type Web struct {
 	Score   []float32
 	IP      []string
 	Mymap   map[string]bool
-	Epr     Expr
+	B       byte
+	epr     Expr
 	MySQL   *struct {
 		Name string
 		port int64 // lower-case
@@ -65,12 +68,21 @@ func TestInsight(t *testing.T) {
 			"aa":  true,
 			"bbb": false,
 		},
-		Epr: &MyExpr{Haha:"iiiii"},
+		B:   10,
+		epr: MyExpr{Haha: "iiiii"},
 		MySQL: &struct {
 			Name string
 			port int64
 		}{Name: "mysqldb", port: 3306},
-		Redis: &Redis{"rdb", 6379, Host{"adf", []string{"alias1", "alias2"}, Policy{"allow policy", "deny policy"}}},
+		Redis: &Redis{"rdb",
+			6379,
+			Host{"adf",
+				[]string{"alias1", "alias2"},
+				Policy{
+					Allow: "allow policy",
+					deny:  "deny policy",
+					t:     time.Second},
+			}},
 	}
 	Insight("Web info", w)
 }
@@ -87,4 +99,24 @@ func TestInterface(t *testing.T) {
 	pol := &Policy{}
 	of := reflect.ValueOf(pol)
 	fmt.Println(of.CanInterface())
+}
+
+func TestReflect(t *testing.T) {
+	pol := Policy{"haha", "hehe", 10, time.Second}
+
+	va := reflect.ValueOf(pol)
+	field := va.Field(3)
+	//reflect.NewAt()
+	fmt.Println(field.Int())
+}
+
+func TestDuration(t *testing.T) {
+	tt := time.Second
+	fmt.Println(tt.String())
+
+	m := map[string]string{
+		"aa": "bb",
+	}
+
+	fmt.Println(m)
 }
