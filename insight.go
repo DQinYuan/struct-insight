@@ -97,7 +97,7 @@ func prettify(v reflect.Value, buf *bytes.Buffer, values *[]interface{}, dep int
 		push(values, key)
 	}
 	switch v.Kind() {
-	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Uint, reflect.Uint16,
+	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Uint, reflect.Uint8, reflect.Uint16,
 		reflect.Uint32, reflect.Uint64:
 		buf.WriteString("%d\n")
 	    push(values, v.Interface())
