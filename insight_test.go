@@ -8,6 +8,18 @@ import (
 	"time"
 )
 
+type Expr interface {
+	eval(v string) bool
+}
+
+type MyExpr struct {
+	Haha string
+}
+
+func (*MyExpr) eval(v string) bool {
+	return false
+}
+
 type Policy struct {
 	Allow string
 	Deny  string
@@ -32,6 +44,7 @@ type Web struct {
 	Score   []float32
 	IP      []string
 	Mymap   map[string]bool
+	Epr     Expr
 	MySQL   *struct {
 		Name string
 		port int64 // lower-case
@@ -46,12 +59,13 @@ func TestInsight(t *testing.T) {
 		port:    1234,
 		Timeout: 5 * time.Second,
 		Rate:    0.32,
-		Score:   []float32{1.1, 2.2, 3.3},
+		Score:   []float32{},
 		IP:      []string{"192.168.1.1", "127.0.0.1", "localhost"},
 		Mymap: map[string]bool{
-			"aa": true,
+			"aa":  true,
 			"bbb": false,
 		},
+		Epr: &MyExpr{Haha:"iiiii"},
 		MySQL: &struct {
 			Name string
 			port int64

@@ -85,6 +85,10 @@ func prettify(v reflect.Value, buf *bytes.Buffer, values *[]interface{}, dep int
 		prettify(v.Elem(), buf, values, dep, prefixType, key)
 		return
 	}
+	if k == reflect.Interface {
+		prettify(reflect.ValueOf(v.Interface()), buf, values, dep, prefixType, key)
+		return
+	}
 
 	addSpace(buf, dep)
 	buf.WriteString(prefixes[prefixType])
