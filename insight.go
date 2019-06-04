@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"reflect"
-	"github.com/tylerb/gls"
 )
 
 /*
@@ -166,6 +165,20 @@ func prettify(v reflect.Value, buf *bytes.Buffer, values *[]interface{}, dep int
 const FILEKEY = "file"
 const MUSTVISIT = "mustvisit"
 const MUSTEXCLUDE  = "mustexclude"
+
+type setMap struct {
+	m map[string]interface{}
+}
+
+func (sm *setMap) Set(key string, value interface{})  {
+	sm.m[key] = value
+}
+
+func (sm *setMap) Get(key string) interface{}{
+	return sm.m[key]
+}
+
+var gls = &setMap{make(map[string]interface{}, 3)}
 
 func Start(key string, mustvisit map[string]bool, mustexclude map[string]bool) {
 	f, err := os.OpenFile(key, os.O_WRONLY | os.O_CREATE, 0666)
