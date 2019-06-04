@@ -81,6 +81,9 @@ func prettify(v reflect.Value, buf *bytes.Buffer, values *[]interface{}, dep int
 	if !v.IsValid() /*|| !v.CanInterface()*/ {
 		return
 	}
+	if dep > 20 {
+		return
+	}
 	k := v.Kind()
 	// 指针类型或者接口类型不会增加深度
 	if k == reflect.Ptr || k == reflect.Interface {
