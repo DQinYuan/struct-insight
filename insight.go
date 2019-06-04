@@ -159,6 +159,10 @@ func Start(key string) {
 }
 
 func Insight(comment string, v interface{}) {
+	if gls.Get(FILEKEY) == nil {
+		return
+	}
+
 	buf := bytes.NewBufferString(comment + " :\n")
 	values := make([]interface{}, 0)
 
