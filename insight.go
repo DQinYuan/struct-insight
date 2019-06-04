@@ -3,7 +3,6 @@ package insight
 import (
 	"bytes"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	"log"
 	"os"
 	"reflect"
@@ -82,6 +81,15 @@ func prettify(v reflect.Value, buf *bytes.Buffer, values *[]interface{}, dep int
 	if !v.IsValid() /*|| !v.CanInterface()*/ {
 		return
 	}
+
+	// 私有字段
+	if gls.Get(MUSTVISIT) != nil {
+		visitSet := gls.Get(MUSTVISIT).(map[string]bool)
+		if !v.CanInterface() && !visitSet[v.Type().String()] && !visitSet[key] {
+			return
+		}
+	}
+
 	if dep > 20 {
 		return
 	}
@@ -148,8 +156,9 @@ func prettify(v reflect.Value, buf *bytes.Buffer, values *[]interface{}, dep int
 }
 
 const FILEKEY = "file"
+const MUSTVISIT = "mustvisit"
 
-func Start(key string) {
+func Start(key string, mustvisit... string) {
 	f, err := os.OpenFile(key, os.O_WRONLY | os.O_CREATE, 0666)
 	if err != nil {
 		log.Printf("open key file %s error %v\n", key, err)
@@ -157,6 +166,14 @@ func Start(key string) {
 	}
 
 	gls.Set(FILEKEY, f)
+
+	if len(mustvisit) > 0 {
+		mustvisitSet := make(map[string]bool, len(mustvisit))
+		for _, v := range mustvisit {
+			mustvisitSet[v] = true
+		}
+		gls.Set(MUSTVISIT, mustvisitSet)
+	}
 }
 
 func Insight(comment string, v interface{}) {
@@ -164,16 +181,12 @@ func Insight(comment string, v interface{}) {
 		return
 	}
 
-/*	buf := bytes.NewBufferString(comment + " :\n")
+	buf := bytes.NewBufferString(comment + " :\n")
 	values := make([]interface{}, 0)
 
 	prettify(reflect.ValueOf(v), buf, &values, 0, NON, "")
 
-	result := fmt.Sprintf(buf.String(), values...)*/
-
-	dump := spew.Sdump(v)
-
-	result := fmt.Sprintf("%s :\n %s\n", comment, dump)
+	result := fmt.Sprintf(buf.String(), values...)
 
 	fmt.Println(result)
 

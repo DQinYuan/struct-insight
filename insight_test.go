@@ -44,7 +44,7 @@ type Web struct {
 	Timeout time.Duration
 	Rate    float32
 	Score   []float32
-	IP      []string
+	ip      []string
 	Mymap   map[string]bool
 	B       byte
 	epr     Expr
@@ -56,14 +56,15 @@ type Web struct {
 }
 
 func TestInsight(t *testing.T) {
-	Start("test")
+	// 要想显示数组的全部内容,必须要加 ""
+	Start("test", "deny", "ip", "")
 	w := &Web{
 		Host:    "web host",
 		port:    1234,
 		Timeout: 5 * time.Second,
 		Rate:    0.32,
 		Score:   []float32{},
-		IP:      []string{"192.168.1.1", "127.0.0.1", "localhost"},
+		ip:      []string{"192.168.1.1", "127.0.0.1", "localhost"},
 		Mymap: map[string]bool{
 			"aa":  true,
 			"bbb": false,
@@ -119,4 +120,12 @@ func TestDuration(t *testing.T) {
 	}
 
 	fmt.Println(m)
+}
+
+func varParam(strs ...string) {
+	fmt.Println(strs)
+}
+
+func TestVarP(t *testing.T) {
+	varParam()
 }
