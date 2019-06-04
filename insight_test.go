@@ -57,7 +57,11 @@ type Web struct {
 
 func TestInsight(t *testing.T) {
 	// 要想显示数组的全部内容,必须要加 ""
-	Start("test", "deny", "ip", "")
+	exd := map[string]bool {
+		"deny": true,
+		"epr": true,
+	}
+	Start("test", nil, exd)
 	w := &Web{
 		Host:    "web host",
 		port:    1234,

@@ -82,6 +82,14 @@ func prettify(v reflect.Value, buf *bytes.Buffer, values *[]interface{}, dep int
 		return
 	}
 
+	// 排除字段
+	if gls.Get(MUSTEXCLUDE) != nil {
+		excludeSet := gls.Get(MUSTEXCLUDE).(map[string]bool)
+		if excludeSet[key] || excludeSet[v.Type().String()] {
+			return
+		}
+	}
+
 	// 私有字段
 	if gls.Get(MUSTVISIT) != nil {
 		visitSet := gls.Get(MUSTVISIT).(map[string]bool)
@@ -157,8 +165,9 @@ func prettify(v reflect.Value, buf *bytes.Buffer, values *[]interface{}, dep int
 
 const FILEKEY = "file"
 const MUSTVISIT = "mustvisit"
+const MUSTEXCLUDE  = "mustexclude"
 
-func Start(key string, mustvisit... string) {
+func Start(key string, mustvisit map[string]bool, mustexclude map[string]bool) {
 	f, err := os.OpenFile(key, os.O_WRONLY | os.O_CREATE, 0666)
 	if err != nil {
 		log.Printf("open key file %s error %v\n", key, err)
@@ -167,12 +176,12 @@ func Start(key string, mustvisit... string) {
 
 	gls.Set(FILEKEY, f)
 
-	if len(mustvisit) > 0 {
-		mustvisitSet := make(map[string]bool, len(mustvisit))
-		for _, v := range mustvisit {
-			mustvisitSet[v] = true
-		}
-		gls.Set(MUSTVISIT, mustvisitSet)
+	if mustvisit != nil {
+		gls.Set(MUSTVISIT, mustvisit)
+	}
+
+	if mustexclude != nil {
+		gls.Set(MUSTEXCLUDE, mustexclude)
 	}
 }
 
