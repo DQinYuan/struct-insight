@@ -3,6 +3,7 @@ package insight
 import (
 	"bytes"
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
 	"log"
 	"os"
 	"reflect"
@@ -163,12 +164,16 @@ func Insight(comment string, v interface{}) {
 		return
 	}
 
-	buf := bytes.NewBufferString(comment + " :\n")
+/*	buf := bytes.NewBufferString(comment + " :\n")
 	values := make([]interface{}, 0)
 
 	prettify(reflect.ValueOf(v), buf, &values, 0, NON, "")
 
-	result := fmt.Sprintf(buf.String(), values...)
+	result := fmt.Sprintf(buf.String(), values...)*/
+
+	dump := spew.Sdump(v)
+
+	result := fmt.Sprintf("%s :\n %s\n", comment, dump)
 
 	fmt.Println(result)
 
